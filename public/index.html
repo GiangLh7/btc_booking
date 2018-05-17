@@ -1,0 +1,87 @@
+<!doctype>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+    <title>javascript coding exam</title>
+    <link rel="stylesheet" href="stylesheets/bootstrap.min.css">
+    <link rel="stylesheet" href="stylesheets/main.css">
+</head>
+<body>
+    <header class="page-header">
+      
+    </header>
+    <div class="container">
+        <div class="panel panel-default">          
+          <div class="panel-body">
+            <form class="form-horizontal" role="form" autocomplete="off" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="txtUnit" class="control-label col-sm-2">Unit</label>                
+                    <div class="input-group col-sm-10">
+                      <input class="form-control" type="text" name="txtUnit" value="" id="txtUnit" />
+                      <div class="input-group-addon">BTC</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="txtPrice" class="control-label col-sm-2">Bib</label>                
+                    <div class="input-group col-sm-10">
+                      <input class="form-control" type="text" name="txtPrice" value="" id="txtPrice" />
+                      <div class="input-group-addon">SGD</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-offset-2 col-sm-10">                
+                    <button id="btnBuy" type="submit" class="btn btn-danger form-">
+                    <span class="glyphicon glyphicon-plus"></span>
+                    Buy Bitcoin
+                    </button>
+                  </div>
+                </div>            
+            </form>
+          </div>
+        </div>
+        
+        <div>
+          <h2>ORDER BOOK</h2>
+          <div id="btcPriceList"></div>
+        </div>       
+
+        <div class="contents">
+        </div>
+    </div>
+    <script src="javascripts/OrderService.js"></script>
+    <script src="javascripts/OrderTable.js"></script>
+    <script type="text/javascript">
+      (function() {
+        const doc = document;
+        const tablePrices = new OrderBookTable("btcPriceList", []);
+        const txtUnit = doc.getElementById("txtUnit");
+        const txtPrice = doc.getElementById("txtPrice");
+        const btnBuy = doc.getElementById("btnBuy");
+
+        Utils.addEvent(btnBuy, "click", function() {
+          const unit = parseFloat(txtUnit.value);
+          const bid = parseFloat(txtPrice.value);
+          if (isNaN(unit) || isNaN(bid)) {
+            return;
+          }
+          btnBuy.disabled = true;
+          OrderService.order(unit, bid).then((result) => {
+            if (result.success) {
+              tablePrices.add({key: result.key, size: unit, bid: bid});
+            }
+            btnBuy.disabled = false;
+          }).catch(() => {
+            btnBuy.disabled = false;
+          });
+          txtUnit.value = "";
+          txtPrice.value = "";
+        });
+        OrderService.getOrders().then((orders) => {
+          tablePrices.setDataTable(orders);
+        });
+
+      })();
+    </script>
+</body>
+</html>
