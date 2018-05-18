@@ -1,0 +1,72 @@
+doctype html
+html
+    head
+        base(href='/')
+        title #{title}
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1")
+
+        link(rel="stylesheet" type='text/css' href="stylesheets/bootstrap.min.css")
+        link(rel="stylesheet" type='text/css' href="stylesheets/main.css")
+    body
+        .navbar.navbar-default
+            .container
+                if user
+                    p.navbar-text Welcome #[strong #{user.userName}]
+                    p.navbar-text.navbar-right
+                        a.navbar-link(href='/logout') Logout
+        div.container
+            .panel.panel-default
+                .panel-body
+                    form.form-horizontal(role="form" autocomplete="off" onsubmit="return false;")
+                        .form-group
+                            label(for="txtUnit" class="control-label col-sm-2") Unit
+                            .input-group.col-sm-10
+                                input.form-control(type="text" name="txtUnit" value="" id="txtUnit")
+                                .input-group-addon BTC
+                        .form-group
+                            label(for="txtPrice" class="control-label col-sm-2") Bib
+                            .input-group.col-sm-10
+                                input.form-control(type="text" name="txtPrice" value="" id="txtPrice")
+                                .input-group-addon SGD
+                        .form-group
+                            .col-sm-offset-2.col-sm-10
+                                button#btnBuy.btn.btn-danger(type="submit")
+                                    span.glyphicon.glyphicon-plus
+                                    | Buy Bitcoin
+
+            div
+                h2 ORDER BOOK
+                #btcPriceList
+        script(src="javascripts/OrderService.js")
+        script(src="javascripts/OrderTable.js")
+        script.
+          (function() {
+            const doc = document;
+            const tablePrices = new OrderBookTable("btcPriceList", []);
+            const txtUnit = doc.getElementById("txtUnit");
+            const txtPrice = doc.getElementById("txtPrice");
+            const btnBuy = doc.getElementById("btnBuy");
+
+            Utils.addEvent(btnBuy, "click", function() {
+              const unit = parseFloat(txtUnit.value);
+              const bid = parseFloat(txtPrice.value);
+              if (isNaN(unit) || isNaN(bid)) {
+                return;
+              }
+              btnBuy.disabled = true;
+              OrderService.order(unit, bid).then((result) => {
+                if (result.success) {
+                  tablePrices.add({key: result.key, size: unit, bid: bid});
+                }
+                btnBuy.disabled = false;
+              }).catch(() => {
+                btnBuy.disabled = false;
+              });
+              txtUnit.value = "";
+              txtPrice.value = "";
+            });
+            OrderService.getOrders().then((orders) => {
+              tablePrices.setDataTable(orders);
+            });
+          })();
